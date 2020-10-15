@@ -57,28 +57,23 @@ def build_graph(dico_kmer):
         kmer_tree.add_edge(node1 , node2 , weight = dico_kmer[k_mer])
     return kmer_tree
     
+def show_graph(graph):
+    """
+    """
+    nx.draw(graph, pos=nx.spring_layout(graph))
+    #pos = nx.spring_layout(graph)
+    #nx.draw_networkx_labels(graph, pos)
+    plt.draw()
+    plt.show()  
     
-
+#### Main
 dico = build_kmer_dict("../data/eva71_two_reads.fq", 8)
 print(dico)
-graph = build_graph(dico)
-nx.draw(graph, pos=nx.spring_layout(graph))
-plt.draw()
-plt.show()
+G = build_graph(dico)
+show_graph(G)
 
 
-
-
-
-
-
-import matplotlib.pyplot as plt
-
-G = nx.dodecahedral_graph()
-
-nx.draw(G)  # networkx draw()
-
-plt.draw()   
+ 
     
     
     
