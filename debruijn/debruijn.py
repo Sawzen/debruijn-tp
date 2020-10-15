@@ -116,6 +116,27 @@ def show_graph(graph):
     plt.draw()
     plt.show()
 
+def get_starting_nodes():
+    """
+    prend en entrée un graphe et retourne une liste de noeuds d’entrée
+    """
+    lst_entree = []
+    for node in graph :
+        pred = list(graph.predecessors(node))
+        if not pred:
+            lst_entree.append(node)
+    return lst_entree
+
+def get_sink_nodes():
+    """
+    prend en entrée un graphe et retourne une liste de noeuds de sortie
+    """
+    lst_sortie = []
+    for node in graph :
+        succ = list(graph.successors(node))
+        if not succ:
+            lst_sortie.append(node)
+    return lst_sortie
 
 #==============================================================
 # Main program
