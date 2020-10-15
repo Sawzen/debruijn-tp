@@ -92,6 +92,22 @@ def build_kmer_dict(fastq, km_len):
                 dico[k_mer] += 1
     return dico
 
+
+def build_graph(dico_kmer):
+    """
+    prendra en entrée un dictionnaire de k-mer et créera l’arbre de k-mers 
+    préfixes et suffixes décrit précédemment. Les arcs auront pour paramètre 
+    obligatoire un poids nommé “weight”
+    """
+    kmer_tree = nx.DiGraph()
+    for k_mer in dico_kmer:
+        node1 = k_mer[:-1]
+        node2 = k_mer[1:]
+        kmer_tree.add_edge(node1 , node2 , weight = dico_kmer[k_mer])
+    return kmer_tree
+
+
+
 #==============================================================
 # Main program
 #==============================================================
