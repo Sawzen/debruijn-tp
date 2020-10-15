@@ -107,6 +107,15 @@ def build_graph(dico_kmer):
     return kmer_tree
 
 
+def show_graph(graph):
+    """
+    """
+    nx.draw(graph, pos=nx.spring_layout(graph))
+    #pos = nx.spring_layout(graph)
+    #nx.draw_networkx_labels(graph, pos)
+    plt.draw()
+    plt.show()
+
 
 #==============================================================
 # Main program
