@@ -148,8 +148,8 @@ def get_contigs(graph, lst_start, lst_end):
     retourne une liste de tuple(contig, taille du contig)
     """
     contigs = []
-    for source in list_start_node :
-        for target in list_end_node :
+    for source in lst_start :
+        for target in lst_end :
             if algorithms.has_path(graph, source, target) == True :
                 path = algorithms.shortest_path(graph, source, target)
                 contig = path[0]
