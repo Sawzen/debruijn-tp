@@ -82,7 +82,8 @@ def build_kmer_dict(fastq, km_len):
         for k_mer in cut_kmer(seq, km_len):
             if k_mer not in dico:
                 dico[k_mer] = 1
-            dico[k_mer] += 1
+            else :
+                dico[k_mer] += 1
     return dico
 
 #==============================================================
