@@ -76,6 +76,12 @@ def cut_kmer(seq, km_len):
 
 def build_kmer_dict(fastq, km_len):
 	"""
+    prend un fichier fastq, une taille k- mer et retourne un dictionnaire 
+    ayant pour clé le k-mer et pour valeur le nombre d’occurrence de ce k-mer
+    :Parameters:
+          fastq : fastq file
+          km_len : length of the k-mer
+    Returns: A dictionary that contains the number of each k-mer iteration
 	"""
 	dico = {}
     for seq in read_fastq(fastq):
