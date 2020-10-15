@@ -5,6 +5,7 @@ import sys , os
 import pprint
 import networkx as nx
 from networkx import algorithms
+import matplotlib.pyplot as plt
 
 # 1) CREATION DU GRAPHE de DE BRUIJN
 ##  a) Identification des kmer unique
@@ -42,6 +43,42 @@ def build_kmer_dict(fastq, km_len):
                 dico[k_mer] += 1
     return dico
     
+
+def build_graph(dico_kmer):
+    """
+    prendra en entrée un dictionnaire de k-mer et créera l’arbre de k-mers 
+    préfixes et suffixes décrit précédemment. Les arcs auront pour paramètre 
+    obligatoire un poids nommé “weight”
+    """
+    kmer_tree = nx.DiGraph()
+    for k_mer in dico_kmer:
+        node1 = k_mer[:-1]
+        node2 = k_mer[1:]
+        kmer_tree.add_edge(node1 , node2 , weight = dico_kmer[k_mer])
+    return kmer_tree
+    
+    
+
+dico = build_kmer_dict("../data/eva71_two_reads.fq", 8)
+print(dico)
+graph = build_graph(dico)
+nx.draw(graph, pos=nx.spring_layout(graph))
+plt.draw()
+plt.show()
+
+
+
+
+
+
+
+import matplotlib.pyplot as plt
+
+G = nx.dodecahedral_graph()
+
+nx.draw(G)  # networkx draw()
+
+plt.draw()   
     
     
     
