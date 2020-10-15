@@ -17,6 +17,7 @@ import argparse
 import os
 import sys
 import networkx as nx
+from networkx import algorithms
 import matplotlib
 from operator import itemgetter
 import random
@@ -116,7 +117,8 @@ def show_graph(graph):
     plt.draw()
     plt.show()
 
-def get_starting_nodes():
+
+def get_starting_nodes(graph):
     """
     prend en entrée un graphe et retourne une liste de noeuds d’entrée
     """
@@ -127,7 +129,8 @@ def get_starting_nodes():
             lst_entree.append(node)
     return lst_entree
 
-def get_sink_nodes():
+
+def get_sink_nodes(graph):
     """
     prend en entrée un graphe et retourne une liste de noeuds de sortie
     """
@@ -137,6 +140,23 @@ def get_sink_nodes():
         if not succ:
             lst_sortie.append(node)
     return lst_sortie
+
+
+def get_contigs(graph, lst_start, lst_end):
+    """
+    prend un graphe, une liste de noeuds d’entrée et une liste de sortie et 
+    retourne une liste de tuple(contig, taille du contig)
+    """
+    contigs = []
+    for source in list_start_node :
+        for target in list_end_node :
+            if algorithms.has_path(graph, source, target) == True :
+                path = algorithms.shortest_path(graph, source, target)
+                contig = path[0]
+                for i in range(len(path)-1):
+                    contig += path[i+1][-1]
+                contigs.append((contig, len(contig)))
+        return contigs
 
 #==============================================================
 # Main program
