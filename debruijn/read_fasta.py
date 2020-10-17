@@ -113,12 +113,12 @@ def build_graph(dico_kmer):
     préfixes et suffixes décrit précédemment. Les arcs auront pour paramètre 
     obligatoire un poids nommé “weight”
     """
-    kmer_tree = nx.DiGraph()
+    graph = nx.DiGraph()
     for k_mer in dico_kmer:
         node1 = k_mer[:-1]
         node2 = k_mer[1:]
-        kmer_tree.add_edge(node1 , node2 , weight = dico_kmer[k_mer])
-    return kmer_tree
+        graph.add_edge(node1 , node2 , weight = dico_kmer[k_mer])
+    return graph
     
 def show_graph(graph):
     """
@@ -178,7 +178,42 @@ def save_contigs(contigs, fichier_out):
     with open(fichier_out,"w") as f_out:
         for i in range(len(contigs)):
             f_out.write(">contig_{} len={}\n{}\n\n".format(i,contigs[i][1], fill(contigs[i][0])))
-  
+
+def std(list_values):
+    return statistics.stdev(list_values)
+    
+# def path_average_weight(graph, contigs):
+    graph_1path = graph.subgraph(contigs)
+    # weight = 0
+    # c = 0
+    # for link in graph_1path.edges(data = True):
+        # weight += link[2]["weight"]
+        # c += 1
+        # print(link)
+    # mean_weight = weight/c  
+    # return mean_weight
+   
+def path_average_weight(graph, path):
+    """Take a graph and a path and return average weigth"""
+    weight = 0
+    for link in path:
+        weight += graph.degree(nbunch = graph, weight = "weight")
+    mean_wei = weight/len(path)
+    return mean_wei
+    
+def remove_paths(graph, list_paths, delete_entry_node = False, delete_sink_node = False ):
+    graph_clean = graph 
+    entry_node = 1
+    sink_node = -2
+    if delete_entry_node :
+        entry_node = 0
+    if delete_sink_node :
+        entry_node = -1  
+    for i in range(len(list_paths)): 
+        graph_clean.remove_node_from(path[entry:sink])
+    return graph_clean
+    
+def select_best_path(graph,list_paths
 
 #==============================================================
 # Main program
@@ -216,8 +251,15 @@ if __name__ == '__main__':
 
     print("\n")
     save_contigs(contig,FASTA_FILE+".fna")
-
-    # ficher eva71_hundred_reads.fq
+    
+    print(contig[0][0])
+    # print(nx.algorithms.simple_paths.all_simple_paths(G,"TCAGAGC", "AATTGTG"))
+    # weight_G_1path = path_average_weight(G,nx.algorithms.simple_paths.all_simple_paths(G,"TCAGAGC", "AATTGTG")[0])
+    # c = nx.path_graph(G,1)
+    # weight_G_1path = path_average_weight(G, contig[0][0])
+    # print(weight_G_1path)
+    
+    
 
 
 
