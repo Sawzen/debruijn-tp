@@ -156,7 +156,7 @@ def get_contigs(graph, lst_start, lst_end):
                 for i in range(len(path)-1):
                     contig += path[i+1][-1]
                 contigs.append((contig, len(contig)))
-        return contigs
+    return contigs
 
 #==============================================================
 # Main program
