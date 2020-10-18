@@ -195,14 +195,13 @@ def std(list_values):
    
 def path_average_weight(graph, path):
     """Take a graph and a path and return average weigth"""
-    weight = 0
-    for link in path:
-        weight += graph.degree(nbunch = graph, weight = "weight")
+    new_G = graph.subgraph(path)
+    weight = new_G.degree(nbunch = new_G, weight = "weight")
     mean_wei = weight/len(path)
     return mean_wei
     
-def remove_paths(graph, list_paths, delete_entry_node = False, delete_sink_node = False ):
-    graph_clean = graph 
+def remove_paths(graph, list_paths, delete_entry_node, delete_sink_node):
+    clean_graph = graph 
     entry_node = 1
     sink_node = -2
     if delete_entry_node :
@@ -210,11 +209,69 @@ def remove_paths(graph, list_paths, delete_entry_node = False, delete_sink_node 
     if delete_sink_node :
         entry_node = -1  
     for i in range(len(list_paths)): 
-        graph_clean.remove_node_from(path[entry:sink])
-    return graph_clean
+        clean_graph.remove_node_from(path[entry:sink])
+    return clean_graph
     
-def select_best_path(graph,list_paths
+def select_best_path(graph, list_paths, lst_len_path, lst_mean_weight, delete_entry_node = False, delete_sink_node = False):
+    """
+    qui prend un graphe, une liste de chemin, une liste donnant la longueur de chaque chemin, 
+    une liste donnant le poids moyen de chaque chemin, delete_entry_node pour indiquer si les noeuds 
+    d’entrée seront supprimés et delete_sink_node pour indiquer si les noeuds de sortie seront supprimés et 
+    retourne un graphe nettoyé des chemins indésirables. Par défaut, delete_entry_node et delete_sink_node seront ici à False.
+    Le meilleur chemin (liste de noeuds consécutif et acyclique) sera identifié par 3 critères:
+    Un chemin est plus fréquent
+    Un chemin est plus long
+    Le hasard, vous imposerez une seed à 9001
+    """
+    max_weight = max(lst_mean_weight)
+    ind_w = []
+    for i, w in enumerate(lst_mean_weight):
+        if w == max_weight:
+            ind_w.append(i)
+    if len(ind_w) > 1:
+        max_len = max(path_lengths)
+        ind_l = []
+        
+        for i, l in enumerate(lst_len_path):
+            if l == count_max_len:
+                ind_l.append(i)
 
+        if len(ind_l) > 1:
+            Random.seed(9001)
+            best_path = random.choice[ind_l]
+        else:
+            best_path = ind_l[0]
+    else:
+        best_path = ind_w[0]
+    bad_paths = list_paths[:best_path] + list_paths[best_path+1:]
+    clean_graph = remove_paths(graph, bad_paths, delete_entry_node, delete_sink_node)
+    return clean_graph    
+
+def solve_bubble(graph, ancestor_node, successor_node):
+    """
+    """
+    all_paths = list(nx.algorithms.simple_paths.all_simple_paths(graph, ancestor_node,successor_node))
+    graph_path_weights = []
+    graph_path_lengths = []
+    for i in all_paths:
+        graph_path_weights.append(path_average_weight(graph, i))
+        graph_path_lengths.append(len(i))
+    graph_no_bull = select_best_path(graph, all_paths,graph_path_lengths, graph_path_weights)
+    return graph_no_bull
+
+def simplify_bubbles(graph):
+    """
+    """
+    list_nodes = graph.nodes()
+    for node in list_nodes:
+        if len(graph.predecessors(node).values()) > 1:
+            
+            
+   
+        
+    graph_no_bull = solve_bubble(graph,ancestor_node, successor_node):
+    return graph_no_bull
+    
 #==============================================================
 # Main program
 #==============================================================
