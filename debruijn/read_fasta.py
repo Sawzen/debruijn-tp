@@ -74,8 +74,12 @@ def get_arguments():
     return parser.parse_args()
 
 def read_fastq(fastq):
-    '''take a fastq file and return an iterator
+    '''
+    A function that takes a fastq file and return an iterator
     of a given sequence
+    :Parameters:
+          fastq : fastq file
+    Returns: generator of a given sequence
     '''
     fastq_file = open(fastq)
     lines = iter(fastq_file.readlines())
@@ -86,16 +90,27 @@ def read_fastq(fastq):
 
 
 def cut_kmer(seq, kmer):
-    ''' Fonction qui prend deux arugments 
-            seq =  une liste sequence en str donnée par la fonction read_fastq
-            kmer : une taille k et retourne un générateur de k_mer   '''
+    '''
+    a function that takes a sequence and the length of the k-mer
+    :Parameters:
+          seq : a sequence as str given by
+          kmer : length of the k-mer
+    :Returns: a generator of the k-mers
+    '''
     seq = seq.strip('\n')
     for j in range(len(seq) - kmer + 1):
         yield seq[j:j+kmer]
-        
-        
+
+
 def build_kmer_dict(fastq, km_len):
     """
+    a function that takes a fastq file, the k-mer length and returns
+    a dictionary having as keys the k-mer and as values the number of
+    each k-mer iteration
+    :Parameters:
+          fastq : fastq file
+          km_len : length of the k-mer
+    Returns: A dictionary that contains the number of each k-mer iteration
     """
     dico = {}
     for seq in read_fastq(fastq):
@@ -105,13 +120,15 @@ def build_kmer_dict(fastq, km_len):
             else :
                 dico[k_mer] += 1
     return dico
-    
+
 
 def build_graph(dico_kmer):
     """
-    prendra en entrée un dictionnaire de k-mer et créera l’arbre de k-mers 
-    préfixes et suffixes décrit précédemment. Les arcs auront pour paramètre 
-    obligatoire un poids nommé “weight”
+    A function that builds an nx graph using a k-mer dictionary
+    :Parameters:
+          dico_kmer : dictionary that contains the number of each k-mer iteration
+    Returns: the k-mers tree (graph) the nodes will be the k-mers and the weights
+            will be the k-mer iterations
     """
     graph = nx.DiGraph()
     for k_mer in dico_kmer:
@@ -119,49 +136,62 @@ def build_graph(dico_kmer):
         node2 = k_mer[1:]
         graph.add_edge(node1 , node2 , weight = dico_kmer[k_mer])
     return graph
-    
+
+
 def show_graph(graph):
     """
+    A function that shows the nx graph
+    :Parameters:
+          graph : a networkx digraph graph
     """
     nx.draw(graph, pos=nx.spring_layout(graph))
-    #pos = nx.spring_layout(graph)
-    #nx.draw_networkx_labels(graph, pos)
+    #nx.draw_networkx_labels(graph, nx.spring_layout(graph))
     plt.draw()
     plt.show()
 
 def get_starting_nodes(graph):
-    '''take a graph and return a list of entry
-    nodes
+    '''
+    A function that creates a list of entry nodes of a graph
+    :Parameters:
+          graph : nx graph
+    Returns: a list of entry nodes
     '''
     list_entre = []
     for node in graph :
         pred = list(graph.predecessors(node))
-        if (not pred) :
+        if not pred :
             #print("Pas de predecesseur\n")
             list_entre.append(node)
     return list_entre
 
 def get_sink_nodes(graph):
-    '''take a graph and return a list of entry
-    nodes
+    '''
+    A function that creates a list of sink nodes of a graph
+    :Parameters:
+          graph : nx graph
+    Returns: a list of sink nodes
     '''
     list_sink = []
     for node in graph :
         succ = list(graph.successors(node))
-        if (not succ) :
+        if not succ :
             #print("Pas de predecesseur\n")
             list_sink.append(node)
     return list_sink
 
 def get_contigs(graph, lst_start, lst_end):
     """
-    prend un graphe, une liste de noeuds d’entrée et une liste de sortie et 
-    retourne une liste de tuple(contig, taille du contig)
+    A function that creates a tuple of contigs and their length
+    :Parameters:
+          graph : nx graph
+          lst_start : list of entry nodes
+          lst_end : list of sink nodes
+    Returns: a tuple of contigs and their length
     """
     contigs = []
     for source in lst_start :
         for target in lst_end :
-            if algorithms.has_path(graph, source, target) == True :
+            if algorithms.has_path(graph, source, target):
                 path = algorithms.shortest_path(graph, source, target)
                 contig = path[0]
                 for i in range(len(path)-1):
@@ -170,87 +200,124 @@ def get_contigs(graph, lst_start, lst_end):
     return contigs
 
 def fill(text, width=80):
-    """Split text with a line return to respect fasta format"""
+    """
+    Split text with a line return to respect fasta format
+    """
     return os.linesep.join(text[i:i+width] for i in range(0, len(text), width))
 
 
-def save_contigs(contigs, fichier_out):
+def save_contigs(contigs, out_file):
+    """
+    A function that creates contig file followinng fasta format
+    :Parameters:
+          contigs : contig dictionary
+          out_file : the name of the file to create
+    """
     with open(fichier_out,"w") as f_out:
         for i in range(len(contigs)):
             f_out.write(">contig_{} len={}\n{}\n\n".format(i,contigs[i][1], fill(contigs[i][0])))
 
 def std(list_values):
+    """
+    A function that gives the standard deviation of a list of values
+    :Parameters:
+          list_values : list of values
+    Returns: the standard deviation value
+    """
     return statistics.stdev(list_values)
-    
-# def path_average_weight(graph, contigs):
-    graph_1path = graph.subgraph(contigs)
-    # weight = 0
-    # c = 0
-    # for link in graph_1path.edges(data = True):
-        # weight += link[2]["weight"]
-        # c += 1
-        # print(link)
-    # mean_weight = weight/c  
-    # return mean_weight
-   
+
+
 def path_average_weight(graph, path):
-    """Take a graph and a path and return average weigth"""
-    new_G = graph.subgraph(path)
-    weight = new_G.degree(nbunch = new_G, weight = "weight")
+    """
+    A function that calculates the average weight of a given path in a graph
+    :Parameters:
+          graph : nx graph
+          path : the path in the graph
+    Returns: the average weight of the path
+    """
+    new_g = graph.subgraph(path)
+    weight = new_g.degree(nbunch = new_g, weight = "weight")
     mean_wei = weight/len(path)
     return mean_wei
-    
+
 def remove_paths(graph, list_paths, delete_entry_node, delete_sink_node):
-    clean_graph = graph 
+    """
+    A function that takes a graph, a list of paths and 2 boolean values to determinate if
+    we keep or delete the entry and sink nodes and returns a cleaned graph
+    :Parameters:
+          graph : nx graph
+          list_paths : list of paths
+          delete_entry_node : boolean True/False
+          delete_sink_node : boolean True/Flase
+    Returns: a cleaned graph from unneeded paths
+    """
+    clean_graph = graph
     entry_node = 1
     sink_node = -2
     if delete_entry_node :
         entry_node = 0
     if delete_sink_node :
-        entry_node = -1  
-    for i in range(len(list_paths)): 
-        clean_graph.remove_node_from(path[entry:sink])
+        entry_node = -1
+    for path in list_paths:
+        clean_graph.remove_node_from(path[entry_node:sink_node])
     return clean_graph
-    
-def select_best_path(graph, list_paths, lst_len_path, lst_mean_weight, delete_entry_node = False, delete_sink_node = False):
+
+
+def select_best_path(graph, list_paths, lst_len_path, lst_mean_weight, delete_entry_node = False,
+    delete_sink_node = False):
     """
-    qui prend un graphe, une liste de chemin, une liste donnant la longueur de chaque chemin, 
-    une liste donnant le poids moyen de chaque chemin, delete_entry_node pour indiquer si les noeuds 
-    d’entrée seront supprimés et delete_sink_node pour indiquer si les noeuds de sortie seront supprimés et 
-    retourne un graphe nettoyé des chemins indésirables. Par défaut, delete_entry_node et delete_sink_node seront ici à False.
-    Le meilleur chemin (liste de noeuds consécutif et acyclique) sera identifié par 3 critères:
-    Un chemin est plus fréquent
-    Un chemin est plus long
-    Le hasard, vous imposerez une seed à 9001
+    A function that takes a graph, a list of paths, a list of mean weights and 2 booleans
+    and returns the best selected path of the graph
+    we consider that the best path is :
+        - highly frequented
+        - has a big weight
+    :Parameters:
+          graph : nx graph
+          lst_paths : list of paths
+          lst_len_path : list of paths lenght
+          lst_mean_weight : list of average weights
+          delete_entry_node : boolean True/False
+          delete_sink_node : boolean True/Flase
+    Returns: the best selected path
     """
     max_weight = max(lst_mean_weight)
     ind_w = []
-    for i, w in enumerate(lst_mean_weight):
-        if w == max_weight:
+    for i, wei in enumerate(lst_mean_weight):
+        if wei == max_weight:
             ind_w.append(i)
     if len(ind_w) > 1:
-        max_len = max(path_lengths)
+        max_len = max(lst_len_path)
         ind_l = []
-        
-        for i, l in enumerate(lst_len_path):
-            if l == count_max_len:
+
+        for i in ind_w:
+            if lst_len_path[i] == max_len:
                 ind_l.append(i)
 
         if len(ind_l) > 1:
-            Random.seed(9001)
-            best_path = random.choice[ind_l]
+            random.seed(9001)
+            rnd_ind = randint(0,len(list_paths))
+            best_path = ind_l[rnd_ind]
         else:
             best_path = ind_l[0]
     else:
         best_path = ind_w[0]
     bad_paths = list_paths[:best_path] + list_paths[best_path+1:]
     clean_graph = remove_paths(graph, bad_paths, delete_entry_node, delete_sink_node)
-    return clean_graph    
+    return clean_graph
 
 def solve_bubble(graph, ancestor_node, successor_node):
     """
+    A function that takes a graph, an ancestor and a successor nodes and returns
+    A graph cleaned from bubbles (it calls select_best_path to keep only one
+    path from the bubble)
+    :Parameters:
+          graph : nx graph
+          ancestor_node : an ancestor node
+          successor_node : a successor node
+    Returns: a graph cleaned from bubbles
     """
-    all_paths = list(nx.algorithms.simple_paths.all_simple_paths(graph, ancestor_node,successor_node))
+    all_paths = list(nx.algorithms.simple_paths.all_simple_paths(graph,ancestor_node,
+        successor_node))
     graph_path_weights = []
     graph_path_lengths = []
     for i in all_paths:
@@ -261,31 +328,52 @@ def solve_bubble(graph, ancestor_node, successor_node):
 
 def simplify_bubbles(graph):
     """
+    A function that takes a graph and clean it from bubbles, it will find the bubbles
+    and call solve_bubble to remove them
+    :Parameters:
+          graph : nx graph
+    Returns: the graph without bubbles
     """
     list_nodes = graph.nodes()
     list_bubbles = []
-    
+
     for node in list_nodes:
         node_predecessors = list(graph.predecessors(node))
         if len(node_predecessors) > 1:
             for i in range(len(node_predecessors)):
                 for j in range(i,len(node_predecessors)):
-                    lowest_predecessor = nx.lowest_common_ancestor(graph,node_predecessors[i], node_predecessors[j])
-                    list_bubbles.append([lowest_common_ancestor, node])
-                    
-    graph_no_bull = graph                    
+                    lowest_predecessor = nx.lowest_common_ancestor(graph,node_predecessors[i],
+                        node_predecessors[j])
+                    list_bubbles.append([lowest_predecessor, node])
+
+    graph_no_bull = graph
     for bubble in list_bubbles:
         graph_no_bull = solve_bubble(graph_no_bull, bubble[0], bubble[1])
     return graph_no_bull
 
 def solve_entry_tips(graph, list_entre):
     """
+    qui prend un graphe et une liste de noeuds d’entrée et retourne graphe sans
+    chemin d’entrée indésirable
     """
+    node_pred = []
+    for node in list_entre:
+        for desc in nx.descendant(graph, node): 
+            pred = list(nx.predecessors(graph, desc))
+            if len(pred) > 1 and desc not in node_pred: 
+                node_pred.append(desc)
+       
+        
+        
+    return graph 
+
 def solve_out_tips(graph, list_sink):
     """
+    qui prend un graphe et une liste de noeuds de sortie et retourne graphe sans
+    chemin de sortie indésirable
     """
-    
-    
+    pass
+
 #==============================================================
 # Main program
 #==============================================================
@@ -305,25 +393,30 @@ if __name__ == '__main__':
     LEN_KMER = ARGS.len_kmer
 
     # ficher eva71_two_reads.fq
-    dico = build_kmer_dict(FASTA_FILE, LEN_KMER)
-    print(dico)
+    dic = build_kmer_dict(FASTA_FILE, LEN_KMER)
+    print(dic)
     print("\n")
-    G = build_graph(dico)
+    G = build_graph(dic)
     show_graph(G)
     starting_node = get_starting_nodes(G)
     print(starting_node)
-    sink_node = get_sink_nodes(G)
-    print(sink_node)
+    sink_node1 = get_sink_nodes(G)
+    print(sink_node1)
 
     print("\n")
 
-    contig = get_contigs(G, starting_node, sink_node)
-    print(contig)
+    conti = get_contigs(G, starting_node, sink_node)
+    print(conti)
 
     print("\n")
-    save_contigs(contig,FASTA_FILE+".fna")
+    save_contigs(conti,FASTA_FILE+".fna")
+
+    print(conti[0][0])
     
-    print(contig[0][0])
+    
+    
+    
+    
     # print(nx.algorithms.simple_paths.all_simple_paths(G,"TCAGAGC", "AATTGTG"))
     # weight_G_1path = path_average_weight(G,nx.algorithms.simple_paths.all_simple_paths(G,"TCAGAGC", "AATTGTG")[0])
     # c = nx.path_graph(G,1)
