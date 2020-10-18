@@ -263,13 +263,19 @@ def simplify_bubbles(graph):
     """
     """
     list_nodes = graph.nodes()
+    list_bubbles = []
+    
     for node in list_nodes:
-        if len(graph.predecessors(node).values()) > 1:
-            
-            
-   
-        
-    graph_no_bull = solve_bubble(graph,ancestor_node, successor_node):
+        node_predecessors = list(graph.predecessors(node))
+        if len(node_predecessors) > 1:
+            for i in range(len(node_predecessors)):
+                for j in range(i,len(node_predecessors)):
+                    lowest_predecessor = nx.lowest_common_ancestor(graph,node_predecessors[i], node_predecessors[j])
+                    list_bubbles.append([lowest_common_ancestor, node])
+                    
+    graph_no_bull = graph                    
+    for bubble in list_bubbles:
+        graph_no_bull = solve_bubble(graph_no_bull, bubble[0], bubble[1])
     return graph_no_bull
     
 #==============================================================
