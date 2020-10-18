@@ -277,6 +277,14 @@ def simplify_bubbles(graph):
     for bubble in list_bubbles:
         graph_no_bull = solve_bubble(graph_no_bull, bubble[0], bubble[1])
     return graph_no_bull
+
+def solve_entry_tips(graph, list_entre):
+    """
+    """
+def solve_out_tips(graph, list_sink):
+    """
+    """
+    
     
 #==============================================================
 # Main program
