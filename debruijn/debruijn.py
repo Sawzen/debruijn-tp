@@ -30,7 +30,7 @@ __copyright__ = "Universite Paris Diderot"
 __credits__ = ["Hocine Meraouna & Hager Elharty"]
 __license__ = "GPL"
 __version__ = "1.0.0"
-__maintainer__ = "Hocine Meraouna & Hager Elharty""
+__maintainer__ = "Hocine Meraouna & Hager Elharty"
 __email__ = "hocine.meraouna@gmail.com & hager.elharty@outlook.fr"
 __status__ = "Developpement"
 
@@ -419,29 +419,30 @@ if __name__ == '__main__':
     FASTA_FILE = ARGS.fasta_file
     LEN_KMER = ARGS.len_kmer
 
-    # 1. Lecture du fichier et construction du graphe
+    # 1. Reading the file and building the graph
     dic = build_kmer_dict(FASTA_FILE, LEN_KMER)
     print(dic)
     print("\n")
     G = build_graph(dic)
     show_graph(G)
 
-    #2.Résolution des bulles
-    #3.Résolution des pointes d’entrée et de sortie
     starting_node = get_starting_nodes(G)
     print(starting_node)
-    sink_node1 = get_sink_nodes(G)
-    print(sink_node1)
+    out_node = get_sink_nodes(G)
+    print(out_node)
+    all_paths = list(nx.algorithms.simple_paths.all_simple_paths(G,ancestor_node,
+        successor_node))
+    # 2. Bubble resolution : remove all bubbles
+    G = simplify_bubbles(G)
 
-    print("\n")
-    conti = get_contigs(G, starting_node, sink_node1)
+    # 3. Resolution of entry and out tips
+    G = solve_entry_tips(G, starting_node)
+    G = solve_out_tips(G, out_node)
+
+    # 4. writting contig in fasta file:
+    conti = get_contigs(G, starting_node, out_node)
     print(conti)
-
-    # 4.Ecriture du/des contigs 
-    print("\n")
     save_contigs(conti,FASTA_FILE+".fna")
-
-    print(conti[0][0])
     
     
 
