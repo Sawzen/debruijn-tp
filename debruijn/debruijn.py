@@ -16,18 +16,20 @@
 # Importation des modules
 
 import argparse
-import sys , os
-import pprint
-import scipy
+import sys
+import os
+#import pprint
+import statistics
+import random
+from random import randint
+#from operator import itemgetter
+#import scipy
 import networkx as nx
 from networkx import algorithms
 import matplotlib.pyplot as plt
-import matplotlib
-from operator import itemgetter
-import random
-random.seed(9001)
-from random import randint
-import statistics
+#import matplotlib
+
+
 
 __author__ = "Your Name"
 __copyright__ = "Universite Paris Diderot"
@@ -361,15 +363,15 @@ def solve_entry_tips(graph, list_entre):
     wei_path = []
     len_path = []
     for node in list_entre:
-        for desc in nx.descendant(graph, node): 
-            pred = list(nx.predecessors(graph, desc))
-            if len(pred) > 1 and desc not in node_pred: 
+        for desc in nx.descendants(graph, node):
+            pred = list(graph.predecessors(desc))
+            if len(pred) > 1 and desc not in node_pred:
                 for path in nx.all_simple_paths(graph, node, pred):
                     lst_path.append(path)
                     wei_path.append(len(path))
                     len_path.append(path_average_weight(graph, path))
-        graph = select_best_path(graph, lst_path, len_path, wei_path, delete_entry_node, delete_sink_node)
-    
+        graph = select_best_path(graph, lst_path, len_path, wei_path, False, False)
+
     return graph
 
 def solve_out_tips(graph, list_sink):
@@ -382,15 +384,15 @@ def solve_out_tips(graph, list_sink):
     wei_path = []
     len_path = []
     for node in list_sink:
-        for anc in nx.ancestors(graph, node): 
-            succ = list(nx.successors(graph, anc))
-            if len(succ) > 1 and anc not in node_pred: 
-                for path in nx.all_simple_paths(graph, node, pred):
+        for anc in nx.ancestors(graph, node):
+            succ = list(graph.successors(anc))
+            if len(succ) > 1 and anc not in node_desc:
+                for path in nx.all_simple_paths(graph, node, anc):
                     lst_path.append(path)
                     wei_path.append(len(path))
                     len_path.append(path_average_weight(graph, path))
-        graph = select_best_path(graph, lst_path, len_path, wei_path, delete_entry_node, delete_sink_node)
-    
+        graph = select_best_path(graph, lst_path, len_path, wei_path, False, False)
+
     return graph
 
 #==============================================================
@@ -401,7 +403,7 @@ def main():
     Main program function
     """
     # Get arguments
-    args = get_arguments()
+    #args = get_arguments()
 
 if __name__ == '__main__':
     PARSER = argparse.ArgumentParser()
@@ -424,7 +426,7 @@ if __name__ == '__main__':
 
     print("\n")
 
-    conti = get_contigs(G, starting_node, sink_node)
+    conti = get_contigs(G, starting_node, sink_node1)
     print(conti)
 
     print("\n")
