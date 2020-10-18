@@ -16,20 +16,18 @@
 # Importation des modules
 
 import argparse
-import sys
-import os
-import random
-import statistics
-#import pprint
-#import scipy
-from random import randint
+import sys , os
+import pprint
+import scipy
 import networkx as nx
 from networkx import algorithms
 import matplotlib.pyplot as plt
-#import matplotlib
-#from operator import itemgetter
-
-
+import matplotlib
+from operator import itemgetter
+import random
+random.seed(9001)
+from random import randint
+import statistics
 
 __author__ = "Your Name"
 __copyright__ = "Universite Paris Diderot"
@@ -77,12 +75,10 @@ def get_arguments():
 
 def read_fastq(fastq):
     '''
-    a function that takes a fastq file and return an iterator
+    A function that takes a fastq file and return an iterator
     of a given sequence
-
     :Parameters:
           fastq : fastq file
-
     Returns: generator of a given sequence
     '''
     fastq_file = open(fastq)
@@ -96,11 +92,9 @@ def read_fastq(fastq):
 def cut_kmer(seq, kmer):
     '''
     a function that takes a sequence and the length of the k-mer
-
     :Parameters:
           seq : a sequence as str given by
           kmer : length of the k-mer
-
     :Returns: a generator of the k-mers
     '''
     seq = seq.strip('\n')
@@ -113,11 +107,9 @@ def build_kmer_dict(fastq, km_len):
     a function that takes a fastq file, the k-mer length and returns
     a dictionary having as keys the k-mer and as values the number of
     each k-mer iteration
-
     :Parameters:
           fastq : fastq file
           km_len : length of the k-mer
-
     Returns: A dictionary that contains the number of each k-mer iteration
     """
     dico = {}
@@ -132,11 +124,9 @@ def build_kmer_dict(fastq, km_len):
 
 def build_graph(dico_kmer):
     """
-    a function that builds an nx graph using a k-mer dictionary
-
+    A function that builds an nx graph using a k-mer dictionary
     :Parameters:
           dico_kmer : dictionary that contains the number of each k-mer iteration
-
     Returns: the k-mers tree (graph) the nodes will be the k-mers and the weights
             will be the k-mer iterations
     """
@@ -150,8 +140,7 @@ def build_graph(dico_kmer):
 
 def show_graph(graph):
     """
-    a function that shows the nx graph
-
+    A function that shows the nx graph
     :Parameters:
           graph : a networkx digraph graph
     """
@@ -162,11 +151,9 @@ def show_graph(graph):
 
 def get_starting_nodes(graph):
     '''
-    a function that creates a list of entry nodes of a graph
-
+    A function that creates a list of entry nodes of a graph
     :Parameters:
           graph : nx graph
-
     Returns: a list of entry nodes
     '''
     list_entre = []
@@ -179,11 +166,9 @@ def get_starting_nodes(graph):
 
 def get_sink_nodes(graph):
     '''
-    a function that creates a list of sink nodes of a graph
-
+    A function that creates a list of sink nodes of a graph
     :Parameters:
           graph : nx graph
-
     Returns: a list of sink nodes
     '''
     list_sink = []
@@ -196,13 +181,11 @@ def get_sink_nodes(graph):
 
 def get_contigs(graph, lst_start, lst_end):
     """
-    a function that creates a tuple of contigs and their length
-
+    A function that creates a tuple of contigs and their length
     :Parameters:
           graph : nx graph
           lst_start : list of entry nodes
           lst_end : list of sink nodes
-
     Returns: a tuple of contigs and their length
     """
     contigs = []
@@ -225,8 +208,7 @@ def fill(text, width=80):
 
 def save_contigs(contigs, out_file):
     """
-    a function that creates contig file followinng fasta format
-
+    A function that creates contig file followinng fasta format
     :Parameters:
           contigs : contig dictionary
           out_file : the name of the file to create
@@ -237,11 +219,9 @@ def save_contigs(contigs, out_file):
 
 def std(list_values):
     """
-    a function that gives the standard deviation of a list of values
-
+    A function that gives the standard deviation of a list of values
     :Parameters:
           list_values : list of values
-
     Returns: the standard deviation value
     """
     return statistics.stdev(list_values)
@@ -249,12 +229,10 @@ def std(list_values):
 
 def path_average_weight(graph, path):
     """
-    a function that calculates the average weight of a given path in a graph
-
+    A function that calculates the average weight of a given path in a graph
     :Parameters:
           graph : nx graph
           path : the path in the graph
-
     Returns: the average weight of the path
     """
     new_g = graph.subgraph(path)
@@ -264,15 +242,13 @@ def path_average_weight(graph, path):
 
 def remove_paths(graph, list_paths, delete_entry_node, delete_sink_node):
     """
-    a function that takes a graph, a list of paths and 2 boolean values to determinate if
+    A function that takes a graph, a list of paths and 2 boolean values to determinate if
     we keep or delete the entry and sink nodes and returns a cleaned graph
-
     :Parameters:
           graph : nx graph
           list_paths : list of paths
           delete_entry_node : boolean True/False
           delete_sink_node : boolean True/Flase
-
     Returns: a cleaned graph from unneeded paths
     """
     clean_graph = graph
@@ -290,12 +266,11 @@ def remove_paths(graph, list_paths, delete_entry_node, delete_sink_node):
 def select_best_path(graph, list_paths, lst_len_path, lst_mean_weight, delete_entry_node = False,
     delete_sink_node = False):
     """
-    a function that takes a graph, a list of paths, a list of mean weights and 2 booleans
+    A function that takes a graph, a list of paths, a list of mean weights and 2 booleans
     and returns the best selected path of the graph
     we consider that the best path is :
         - highly frequented
         - has a big weight
-
     :Parameters:
           graph : nx graph
           lst_paths : list of paths
@@ -303,7 +278,6 @@ def select_best_path(graph, list_paths, lst_len_path, lst_mean_weight, delete_en
           lst_mean_weight : list of average weights
           delete_entry_node : boolean True/False
           delete_sink_node : boolean True/Flase
-
     Returns: the best selected path
     """
     max_weight = max(lst_mean_weight)
@@ -333,15 +307,13 @@ def select_best_path(graph, list_paths, lst_len_path, lst_mean_weight, delete_en
 
 def solve_bubble(graph, ancestor_node, successor_node):
     """
-    a function that takes a graph, an ancestor and a successor nodes and returns
-    a graph cleaned from bubbles (it calls select_best_path to keep only one
+    A function that takes a graph, an ancestor and a successor nodes and returns
+    A graph cleaned from bubbles (it calls select_best_path to keep only one
     path from the bubble)
-
     :Parameters:
           graph : nx graph
           ancestor_node : an ancestor node
           successor_node : a successor node
-
     Returns: a graph cleaned from bubbles
     """
     all_paths = list(nx.algorithms.simple_paths.all_simple_paths(graph,ancestor_node,
@@ -356,12 +328,10 @@ def solve_bubble(graph, ancestor_node, successor_node):
 
 def simplify_bubbles(graph):
     """
-    a function that takes a graph and clean it from bubbles, it will find the bubbles
+    A function that takes a graph and clean it from bubbles, it will find the bubbles
     and call solve_bubble to remove them
-
     :Parameters:
           graph : nx graph
-
     Returns: the graph without bubbles
     """
     list_nodes = graph.nodes()
@@ -386,14 +356,42 @@ def solve_entry_tips(graph, list_entre):
     qui prend un graphe et une liste de noeuds d’entrée et retourne graphe sans
     chemin d’entrée indésirable
     """
-    pass
+    node_pred = []
+    lst_path = []
+    wei_path = []
+    len_path = []
+    for node in list_entre:
+        for desc in nx.descendant(graph, node): 
+            pred = list(nx.predecessors(graph, desc))
+            if len(pred) > 1 and desc not in node_pred: 
+                for path in nx.all_simple_paths(graph, node, pred):
+                    lst_path.append(path)
+                    wei_path.append(len(path))
+                    len_path.append(path_average_weight(graph, path))
+        graph = select_best_path(graph, lst_path, len_path, wei_path, delete_entry_node, delete_sink_node)
+    
+    return graph
 
 def solve_out_tips(graph, list_sink):
     """
     qui prend un graphe et une liste de noeuds de sortie et retourne graphe sans
     chemin de sortie indésirable
     """
-    pass
+    node_desc = []
+    lst_path = []
+    wei_path = []
+    len_path = []
+    for node in list_sink:
+        for anc in nx.ancestors(graph, node): 
+            succ = list(nx.successors(graph, anc))
+            if len(succ) > 1 and anc not in node_pred: 
+                for path in nx.all_simple_paths(graph, node, pred):
+                    lst_path.append(path)
+                    wei_path.append(len(path))
+                    len_path.append(path_average_weight(graph, path))
+        graph = select_best_path(graph, lst_path, len_path, wei_path, delete_entry_node, delete_sink_node)
+    
+    return graph
 
 #==============================================================
 # Main program
@@ -433,4 +431,3 @@ if __name__ == '__main__':
     save_contigs(conti,FASTA_FILE+".fna")
 
     print(conti[0][0])
-
