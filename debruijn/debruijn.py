@@ -223,11 +223,13 @@ def fill(text, width=80):
     return os.linesep.join(text[i:i+width] for i in range(0, len(text), width))
 
 
-def save_contigs(contigs, fichier_out):
+def save_contigs(contigs, out_file):
     """
-    qui prend une liste de tuple (contig, taille du contig) et un
-    nom de fichier de sortie et écrit un fichier de sortie contenant
-    les contigs selon le format fasta
+    a function that creates contig file followinng fasta format
+
+    :Parameters:
+          contigs : contig dictionary
+          out_file : the name of the file to create
     """
     with open(fichier_out,"w") as f_out:
         for i in range(len(contigs)):
@@ -235,14 +237,25 @@ def save_contigs(contigs, fichier_out):
 
 def std(list_values):
     """
-    qui prend une liste de valeur, qui retourne l’écart type.
+    a function that gives the standard deviation of a list of values
+
+    :Parameters:
+          list_values : list of values
+
+    Returns: the standard deviation value
     """
     return statistics.stdev(list_values)
 
 
 def path_average_weight(graph, path):
     """
-    Take a graph and a path and return average weigth
+    a function that calculates the average weight of a given path in a graph
+
+    :Parameters:
+          graph : nx graph
+          path : the path in the graph
+
+    Returns: the average weight of the path
     """
     new_g = graph.subgraph(path)
     weight = new_g.degree(nbunch = new_g, weight = "weight")
@@ -251,10 +264,16 @@ def path_average_weight(graph, path):
 
 def remove_paths(graph, list_paths, delete_entry_node, delete_sink_node):
     """
-    qui prend un graphe et une liste de chemin, la variable booléenne delete_entry_node pour
-    indiquer si les noeuds d’entrée seront supprimés et la variable booléenne delete_sink_node
-    pour indiquer si les noeuds de sortie seront supprimés et retourne un graphe nettoyé des
-    chemins indésirables.
+    a function that takes a graph, a list of paths and 2 boolean values to determinate if
+    we keep or delete the entry and sink nodes and returns a cleaned graph
+
+    :Parameters:
+          graph : nx graph
+          list_paths : list of paths
+          delete_entry_node : boolean True/False
+          delete_sink_node : boolean True/Flase
+
+    Returns: a cleaned graph from unneeded paths
     """
     clean_graph = graph
     entry_node = 1
@@ -271,15 +290,21 @@ def remove_paths(graph, list_paths, delete_entry_node, delete_sink_node):
 def select_best_path(graph, list_paths, lst_len_path, lst_mean_weight, delete_entry_node = False,
     delete_sink_node = False):
     """
-    qui prend un graphe, une liste de chemin, une liste donnant la longueur de chaque chemin,
-    une liste donnant le poids moyen de chaque chemin, delete_entry_node pour indiquer si les
-    noeuds d’entrée seront supprimés et delete_sink_node pour indiquer si les noeuds de sortie
-    seront supprimés et retourne un graphe nettoyé des chemins indésirables. Par défaut,
-    delete_entry_node et delete_sink_node seront ici à False.
-    Le meilleur chemin (liste de noeuds consécutif et acyclique) sera identifié par 3 critères:
-    Un chemin est plus fréquent
-    Un chemin est plus long
-    Le hasard, vous imposerez une seed à 9001
+    a function that takes a graph, a list of paths, a list of mean weights and 2 booleans
+    and returns the best selected path of the graph
+    we consider that the best path is :
+        - highly frequented
+        - has a big weight
+
+    :Parameters:
+          graph : nx graph
+          lst_paths : list of paths
+          lst_len_path : list of paths lenght
+          lst_mean_weight : list of average weights
+          delete_entry_node : boolean True/False
+          delete_sink_node : boolean True/Flase
+
+    Returns: the best selected path
     """
     max_weight = max(lst_mean_weight)
     ind_w = []
@@ -308,9 +333,16 @@ def select_best_path(graph, list_paths, lst_len_path, lst_mean_weight, delete_en
 
 def solve_bubble(graph, ancestor_node, successor_node):
     """
-    qui prend un graphe, un noeud ancêtre, un noeud descendant et retourne un graph nettoyé
-    de la bulle se trouvant entre ces deux noeuds en utilisant les fonctions précédemment
-    développée.
+    a function that takes a graph, an ancestor and a successor nodes and returns
+    a graph cleaned from bubbles (it calls select_best_path to keep only one
+    path from the bubble)
+
+    :Parameters:
+          graph : nx graph
+          ancestor_node : an ancestor node
+          successor_node : a successor node
+
+    Returns: a graph cleaned from bubbles
     """
     all_paths = list(nx.algorithms.simple_paths.all_simple_paths(graph,ancestor_node,
         successor_node))
@@ -324,8 +356,13 @@ def solve_bubble(graph, ancestor_node, successor_node):
 
 def simplify_bubbles(graph):
     """
-    qui prend un graphe et retourne un graphe sans bulle. Il faut ici identifier le noeud
-    ancêtre et le noeud descendant que l’on va indiquer à solve_bubble.
+    a function that takes a graph and clean it from bubbles, it will find the bubbles
+    and call solve_bubble to remove them
+
+    :Parameters:
+          graph : nx graph
+
+    Returns: the graph without bubbles
     """
     list_nodes = graph.nodes()
     list_bubbles = []
