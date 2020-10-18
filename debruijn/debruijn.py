@@ -419,9 +419,10 @@ def main():
     #args = get_arguments()
 
 if __name__ == '__main__':
+
     PARSER = argparse.ArgumentParser()
     PARSER.add_argument("fasta_file", help="the fasta file", type=str)
-    PARSER.add_argument("len_kmer", help="the length of the kmers", type=int)
+    PARSER.add_argument("len_kmer", help="the length of the kmers", type=int, default=21)
     ARGS = PARSER.parse_args()
     FASTA_FILE = ARGS.fasta_file
     LEN_KMER = ARGS.len_kmer
