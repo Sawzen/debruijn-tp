@@ -16,30 +16,26 @@
 # Importation des modules
 
 import argparse
-import sys , os
-import pprint
-import scipy
+import sys
+import os
+import statistics
+import random
+from random import randint
 import networkx as nx
 from networkx import algorithms
 import matplotlib.pyplot as plt
-import matplotlib
-from operator import itemgetter
-import random
-random.seed(9001)
-from random import randint
-import statistics
 
-__author__ = "Your Name"
+__author__ = "Hocine Meraouna & Hager Elharty"
 __copyright__ = "Universite Paris Diderot"
-__credits__ = ["Your Name"]
+__credits__ = ["Hocine Meraouna & Hager Elharty"]
 __license__ = "GPL"
 __version__ = "1.0.0"
-__maintainer__ = "Your Name"
-__email__ = "your@email.fr"
+__maintainer__ = "Hocine Meraouna & Hager Elharty""
+__email__ = "hocine.meraouna@gmail.com & hager.elharty@outlook.fr"
 __status__ = "Developpement"
 
 
-# 1) CREATION DU GRAPHE de DE BRUIJN
+# I) CREATION DU GRAPHE de DE BRUIJN
 ##  a) Identification des kmer unique
 
 def isfile(path):
@@ -88,7 +84,6 @@ def read_fastq(fastq):
         next(lines)
         next(lines)
 
-
 def cut_kmer(seq, kmer):
     '''
     a function that takes a sequence and the length of the k-mer
@@ -100,7 +95,6 @@ def cut_kmer(seq, kmer):
     seq = seq.strip('\n')
     for j in range(len(seq) - kmer + 1):
         yield seq[j:j+kmer]
-
 
 def build_kmer_dict(fastq, km_len):
     """
@@ -121,6 +115,7 @@ def build_kmer_dict(fastq, km_len):
                 dico[k_mer] += 1
     return dico
 
+## b) Construction de l’arbre de de Bruijn
 
 def build_graph(dico_kmer):
     """
@@ -148,6 +143,8 @@ def show_graph(graph):
     #nx.draw_networkx_labels(graph, nx.spring_layout(graph))
     plt.draw()
     plt.show()
+ 
+# II)Parcours du graphe de de Bruijn
 
 def get_starting_nodes(graph):
     '''
@@ -217,6 +214,8 @@ def save_contigs(contigs, out_file):
         for i in range(len(contigs)):
             f_out.write(">contig_{} len={}\n{}\n\n".format(i,contigs[i][1], fill(contigs[i][0])))
 
+# III) Simplification du graphe de de Bruijn:
+## a)Résolution des bulles
 def std(list_values):
     """
     A function that gives the standard deviation of a list of values
@@ -351,28 +350,56 @@ def simplify_bubbles(graph):
         graph_no_bull = solve_bubble(graph_no_bull, bubble[0], bubble[1])
     return graph_no_bull
 
+## b) Détection des pointes (tips)
 def solve_entry_tips(graph, list_entre):
     """
-    qui prend un graphe et une liste de noeuds d’entrée et retourne graphe sans
-    chemin d’entrée indésirable
+    A function that take in arguments a graph and a list of entry nodes and
+    return a graph without undesirable paths
+        :Parameters:
+            graph : nx graph
+            list_entre : a list of entry nodes
+        :Returns: 
+            A graph with no entry tips
     """
     node_pred = []
+    lst_path = []
+    wei_path = []
+    len_path = []
     for node in list_entre:
-        for desc in nx.descendant(graph, node): 
-            pred = list(nx.predecessors(graph, desc))
-            if len(pred) > 1 and desc not in node_pred: 
-                node_pred.append(desc)
-       
-        
-        
-    return graph 
+        for desc in nx.descendants(graph, node):
+            pred = list(graph.predecessors(desc))
+            if len(pred) > 1 and desc not in node_pred:
+                for path in nx.all_simple_paths(graph, node, pred):
+                    lst_path.append(path)
+                    wei_path.append(len(path))
+                    len_path.append(path_average_weight(graph, path))
+        graph = select_best_path(graph, lst_path, len_path, wei_path, False, False)
+    return graph
 
 def solve_out_tips(graph, list_sink):
     """
-    qui prend un graphe et une liste de noeuds de sortie et retourne graphe sans
-    chemin de sortie indésirable
+    A funtction that take in arguments a graph un a list of out nodes and return
+    a graph without undesirable paths
+        :Parameters: 
+            graph : nx graph 
+            list_sink : a list of out nodes
+        :Return:
+        A graph with no out tips       
     """
-    pass
+    node_desc = []
+    lst_path = []
+    wei_path = []
+    len_path = []
+    for node in list_sink:
+        for anc in nx.ancestors(graph, node):
+            succ = list(graph.successors(anc))
+            if len(succ) > 1 and anc not in node_desc:
+                for path in nx.all_simple_paths(graph, node, anc):
+                    lst_path.append(path)
+                    wei_path.append(len(path))
+                    len_path.append(path_average_weight(graph, path))
+        graph = select_best_path(graph, lst_path, len_path, wei_path, False, False)
+    return graph
 
 #==============================================================
 # Main program
@@ -382,7 +409,7 @@ def main():
     Main program function
     """
     # Get arguments
-    args = get_arguments()
+    #args = get_arguments()
 
 if __name__ == '__main__':
     PARSER = argparse.ArgumentParser()
@@ -392,36 +419,29 @@ if __name__ == '__main__':
     FASTA_FILE = ARGS.fasta_file
     LEN_KMER = ARGS.len_kmer
 
-    # ficher eva71_two_reads.fq
+    # 1. Lecture du fichier et construction du graphe
     dic = build_kmer_dict(FASTA_FILE, LEN_KMER)
     print(dic)
     print("\n")
     G = build_graph(dic)
     show_graph(G)
+
+    #2.Résolution des bulles
+    #3.Résolution des pointes d’entrée et de sortie
     starting_node = get_starting_nodes(G)
     print(starting_node)
     sink_node1 = get_sink_nodes(G)
     print(sink_node1)
 
     print("\n")
-
-    conti = get_contigs(G, starting_node, sink_node)
+    conti = get_contigs(G, starting_node, sink_node1)
     print(conti)
 
+    # 4.Ecriture du/des contigs 
     print("\n")
     save_contigs(conti,FASTA_FILE+".fna")
 
     print(conti[0][0])
-    
-    
-    
-    
-    
-    # print(nx.algorithms.simple_paths.all_simple_paths(G,"TCAGAGC", "AATTGTG"))
-    # weight_G_1path = path_average_weight(G,nx.algorithms.simple_paths.all_simple_paths(G,"TCAGAGC", "AATTGTG")[0])
-    # c = nx.path_graph(G,1)
-    # weight_G_1path = path_average_weight(G, contig[0][0])
-    # print(weight_G_1path)
     
     
 
