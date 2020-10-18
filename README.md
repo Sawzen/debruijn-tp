@@ -41,4 +41,13 @@ Vous vérifierez également la qualité syntaxique de votre programme en exécut
 
 ## Contact
 
-En cas de questions, vous pouvez me contacter par email: amine.ghozlane[at]pasteur.fr
+En cas de questions, vous pouvez me contacter par email: hager.elharty@outlook.fr
+
+## NB
+
+Notre code fonctionne avec la commande suivante : 
+python debruijn.py ../data/eva71_two_reads.fq 8
+
+Nous n'avons pas reussi à faire tourner notre code avec une autre taille de k-mer, ni avec le fichier eva71_plus_perfect. 
+
+La partie BLAST n'as pas non plus été traitée.
