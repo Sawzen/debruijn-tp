@@ -18,30 +18,24 @@
 import argparse
 import sys
 import os
-#import pprint
 import statistics
 import random
 from random import randint
-#from operator import itemgetter
-#import scipy
 import networkx as nx
 from networkx import algorithms
 import matplotlib.pyplot as plt
-#import matplotlib
 
-
-
-__author__ = "Your Name"
+__author__ = "Hocine Meraouna & Hager Elharty"
 __copyright__ = "Universite Paris Diderot"
-__credits__ = ["Your Name"]
+__credits__ = ["Hocine Meraouna & Hager Elharty"]
 __license__ = "GPL"
 __version__ = "1.0.0"
-__maintainer__ = "Your Name"
-__email__ = "your@email.fr"
+__maintainer__ = "Hocine Meraouna & Hager Elharty"
+__email__ = "hocine.meraouna@gmail.com & hager.elharty@outlook.fr"
 __status__ = "Developpement"
 
 
-# 1) CREATION DU GRAPHE de DE BRUIJN
+# I) CREATION DU GRAPHE de DE BRUIJN
 ##  a) Identification des kmer unique
 
 def isfile(path):
@@ -90,7 +84,6 @@ def read_fastq(fastq):
         next(lines)
         next(lines)
 
-
 def cut_kmer(seq, kmer):
     '''
     a function that takes a sequence and the length of the k-mer
@@ -102,7 +95,6 @@ def cut_kmer(seq, kmer):
     seq = seq.strip('\n')
     for j in range(len(seq) - kmer + 1):
         yield seq[j:j+kmer]
-
 
 def build_kmer_dict(fastq, km_len):
     """
@@ -123,6 +115,7 @@ def build_kmer_dict(fastq, km_len):
                 dico[k_mer] += 1
     return dico
 
+## b) Construction de l’arbre de de Bruijn
 
 def build_graph(dico_kmer):
     """
@@ -150,6 +143,8 @@ def show_graph(graph):
     #nx.draw_networkx_labels(graph, nx.spring_layout(graph))
     plt.draw()
     plt.show()
+ 
+# II)Parcours du graphe de de Bruijn
 
 def get_starting_nodes(graph):
     '''
@@ -215,10 +210,12 @@ def save_contigs(contigs, out_file):
           contigs : contig dictionary
           out_file : the name of the file to create
     """
-    with open(fichier_out,"w") as f_out:
+    with open(out_file,"w") as f_out:
         for i in range(len(contigs)):
             f_out.write(">contig_{} len={}\n{}\n\n".format(i,contigs[i][1], fill(contigs[i][0])))
 
+# III) Simplification du graphe de de Bruijn:
+## a)Résolution des bulles
 def std(list_values):
     """
     A function that gives the standard deviation of a list of values
@@ -239,7 +236,10 @@ def path_average_weight(graph, path):
     """
     new_g = graph.subgraph(path)
     weight = new_g.degree(nbunch = new_g, weight = "weight")
-    mean_wei = weight/len(path)
+    somme=0
+    for i in weight:
+        somme += i[1]
+    mean_wei = somme/len(path)
     return mean_wei
 
 def remove_paths(graph, list_paths, delete_entry_node, delete_sink_node):
@@ -255,13 +255,14 @@ def remove_paths(graph, list_paths, delete_entry_node, delete_sink_node):
     """
     clean_graph = graph
     entry_node = 1
-    sink_node = -2
+    sink_node = 1
     if delete_entry_node :
-        entry_node = 0
+        entry_node -= 1
     if delete_sink_node :
-        entry_node = -1
+        sink_node -= 1
     for path in list_paths:
-        clean_graph.remove_node_from(path[entry_node:sink_node])
+        for i in range(entry_node, len(path)-sink_node):
+            clean_graph.remove_node(path[i])
     return clean_graph
 
 
@@ -346,17 +347,25 @@ def simplify_bubbles(graph):
                 for j in range(i,len(node_predecessors)):
                     lowest_predecessor = nx.lowest_common_ancestor(graph,node_predecessors[i],
                         node_predecessors[j])
-                    list_bubbles.append([lowest_predecessor, node])
+                    if lowest_predecessor:
+                        list_bubbles.append([lowest_predecessor, node])
 
     graph_no_bull = graph
     for bubble in list_bubbles:
         graph_no_bull = solve_bubble(graph_no_bull, bubble[0], bubble[1])
+
     return graph_no_bull
 
+## b) Détection des pointes (tips)
 def solve_entry_tips(graph, list_entre):
     """
-    qui prend un graphe et une liste de noeuds d’entrée et retourne graphe sans
-    chemin d’entrée indésirable
+    A function that take in arguments a graph and a list of entry nodes and
+    return a graph without undesirable paths
+        :Parameters:
+            graph : nx graph
+            list_entre : a list of entry nodes
+        :Returns: 
+            A graph with no entry tips
     """
     node_pred = []
     lst_path = []
@@ -371,13 +380,17 @@ def solve_entry_tips(graph, list_entre):
                     wei_path.append(len(path))
                     len_path.append(path_average_weight(graph, path))
         graph = select_best_path(graph, lst_path, len_path, wei_path, False, False)
-
     return graph
 
 def solve_out_tips(graph, list_sink):
     """
-    qui prend un graphe et une liste de noeuds de sortie et retourne graphe sans
-    chemin de sortie indésirable
+    A funtction that take in arguments a graph un a list of out nodes and return
+    a graph without undesirable paths
+        :Parameters: 
+            graph : nx graph 
+            list_sink : a list of out nodes
+        :Return:
+        A graph with no out tips       
     """
     node_desc = []
     lst_path = []
@@ -391,8 +404,8 @@ def solve_out_tips(graph, list_sink):
                     lst_path.append(path)
                     wei_path.append(len(path))
                     len_path.append(path_average_weight(graph, path))
-        graph = select_best_path(graph, lst_path, len_path, wei_path, False, False)
-
+        if len(wei_path) > 0 :
+            graph = select_best_path(graph, lst_path, len_path, wei_path, False, False)
     return graph
 
 #==============================================================
@@ -413,23 +426,28 @@ if __name__ == '__main__':
     FASTA_FILE = ARGS.fasta_file
     LEN_KMER = ARGS.len_kmer
 
-    # ficher eva71_two_reads.fq
+    # 1. Reading the file and building the graph
     dic = build_kmer_dict(FASTA_FILE, LEN_KMER)
     print(dic)
     print("\n")
     G = build_graph(dic)
-    show_graph(G)
+    #show_graph(G)
+
     starting_node = get_starting_nodes(G)
     print(starting_node)
-    sink_node1 = get_sink_nodes(G)
-    print(sink_node1)
+    out_node = get_sink_nodes(G)
+    print(out_node)
 
-    print("\n")
 
-    conti = get_contigs(G, starting_node, sink_node1)
+
+    # 2. Bubble resolution : remove all bubbles
+    G = simplify_bubbles(G)
+
+    # 3. Resolution of entry and out tips
+    G = solve_entry_tips(G, starting_node)
+    G = solve_out_tips(G, out_node)
+
+    # 4. writting contig in fasta file:
+    conti = get_contigs(G, starting_node, out_node)
     print(conti)
-
-    print("\n")
     save_contigs(conti,FASTA_FILE+".fna")
-
-    print(conti[0][0])
