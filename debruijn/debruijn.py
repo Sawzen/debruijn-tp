@@ -210,7 +210,7 @@ def save_contigs(contigs, out_file):
           contigs : contig dictionary
           out_file : the name of the file to create
     """
-    with open(fichier_out,"w") as f_out:
+    with open(out_file,"w") as f_out:
         for i in range(len(contigs)):
             f_out.write(">contig_{} len={}\n{}\n\n".format(i,contigs[i][1], fill(contigs[i][0])))
 
@@ -236,7 +236,10 @@ def path_average_weight(graph, path):
     """
     new_g = graph.subgraph(path)
     weight = new_g.degree(nbunch = new_g, weight = "weight")
-    mean_wei = weight/len(path)
+    somme=0
+    for i in weight:
+        somme += i[1]
+    mean_wei = somme/len(path)
     return mean_wei
 
 def remove_paths(graph, list_paths, delete_entry_node, delete_sink_node):
@@ -252,13 +255,14 @@ def remove_paths(graph, list_paths, delete_entry_node, delete_sink_node):
     """
     clean_graph = graph
     entry_node = 1
-    sink_node = -2
+    sink_node = 1
     if delete_entry_node :
-        entry_node = 0
+        entry_node -= 1
     if delete_sink_node :
-        entry_node = -1
+        sink_node -= 1
     for path in list_paths:
-        clean_graph.remove_node_from(path[entry_node:sink_node])
+        for i in range(entry_node, len(path)-sink_node):
+            clean_graph.remove_node(path[i])
     return clean_graph
 
 
@@ -343,11 +347,13 @@ def simplify_bubbles(graph):
                 for j in range(i,len(node_predecessors)):
                     lowest_predecessor = nx.lowest_common_ancestor(graph,node_predecessors[i],
                         node_predecessors[j])
-                    list_bubbles.append([lowest_predecessor, node])
+                    if lowest_predecessor:
+                        list_bubbles.append([lowest_predecessor, node])
 
     graph_no_bull = graph
     for bubble in list_bubbles:
         graph_no_bull = solve_bubble(graph_no_bull, bubble[0], bubble[1])
+
     return graph_no_bull
 
 ## b) Détection des pointes (tips)
@@ -398,7 +404,8 @@ def solve_out_tips(graph, list_sink):
                     lst_path.append(path)
                     wei_path.append(len(path))
                     len_path.append(path_average_weight(graph, path))
-        graph = select_best_path(graph, lst_path, len_path, wei_path, False, False)
+        if len(wei_path) > 0 :
+            graph = select_best_path(graph, lst_path, len_path, wei_path, False, False)
     return graph
 
 #==============================================================
@@ -424,14 +431,15 @@ if __name__ == '__main__':
     print(dic)
     print("\n")
     G = build_graph(dic)
-    show_graph(G)
+    #show_graph(G)
 
     starting_node = get_starting_nodes(G)
     print(starting_node)
     out_node = get_sink_nodes(G)
     print(out_node)
-    all_paths = list(nx.algorithms.simple_paths.all_simple_paths(G,ancestor_node,
-        successor_node))
+
+
+
     # 2. Bubble resolution : remove all bubbles
     G = simplify_bubbles(G)
 
